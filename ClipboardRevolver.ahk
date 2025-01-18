@@ -2,7 +2,7 @@
 SendMode Input
 SetWorkingDir, %A_ScriptDir%
 
-#Include ../ahkextrafunctions.ahk
+#Include LaserbeanAHK/KeyRelease.ahk
 
 ;#REGION VARIABLES
 
