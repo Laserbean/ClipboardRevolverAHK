@@ -197,7 +197,9 @@ OnClipboardChange:
 
     ; current_clipboard := Clipboard
     revolverarray[current_index] := Clipboard
-    clipboardallarray%current_index% := ClipboardAll
+    try {
+        clipboardallarray%current_index% := ClipboardAll
+    }
 
     if (revolverarray[current_index] = "" && clipboardallarray%current_index% != "") {
         revolverarray[current_index] := " ... "
@@ -363,6 +365,9 @@ Return
 
     ; ControlFocus, Edit1, A
     ; WinSet, Transparent, 200
+
+    if ErrorLevel
+        Return
 
     Clipboard := NewClipboard
     revolverarray[current_index] := Clipboard
