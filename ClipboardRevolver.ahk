@@ -1,12 +1,15 @@
+; Version 3
+
 #SingleInstance, Force
 SendMode Input
 SetWorkingDir, %A_ScriptDir%
 
-#Include LaserbeanAHK/KeyRelease.ahk
 
 ;#REGION VARIABLES
 
 isRunning := True
+isWheeling := True
+
 TOOLTIPNUMBER := 2
 
 display_tip_max_char := 50
@@ -75,6 +78,20 @@ ClearTooltips() {
     Gosub, ToggleLabel
 Return
 
++!MButton::
+    if (!isRunning) {
+        Send, +!{MButton}
+        Return
+    }
+    isWheeling := ! isWheeling
+    ToolTip, isWheeling %isWheeling%
+    Sleep, 300
+
+    ToolTip
+Return
+
+
+
 #C::
     Gosub, ToggleLabel
 Return
@@ -100,7 +117,7 @@ MainLabel:
             ; ToolTip, %currentdisplayind%, curmousex - 100, curmousey-100, TOOLTIPNUMBER -1
             ; ToolTip, %clipboard%, curmousex, curmousey, TOOLTIPNUMBER
 
-            if (GetKeyState("LAlt", "P")) {
+            if (GetKeyState("LAlt", "P") and isWheeling) {
                 if (!changetriggered) {
                     changetriggered := True
                 }
@@ -183,23 +200,19 @@ Return
 
 OnClipboardChange:
     ; MsgBox, , TEST, %ClipboardAll%
-
-    if (!isRunning){
+    if (!isRunning || GetKeyState("Alt", "P") = 1){
         return
     }
-
     if (revolverlockarray[current_index] || revolverarray[current_index] != "") {
         ; MsgBox, , test, test, 1
         changetriggered = True
         Gosub, UpdateChangeLabel
         return
     }
-
+    Sleep, 100
     ; current_clipboard := Clipboard
     revolverarray[current_index] := Clipboard
-    try {
-        clipboardallarray%current_index% := ClipboardAll
-    }
+    clipboardallarray%current_index% := ClipboardAll
 
     if (revolverarray[current_index] = "" && clipboardallarray%current_index% != "") {
         revolverarray[current_index] := " ... "
@@ -221,6 +234,10 @@ Return
 
 ;#REGION CLEAR
 !Space::
+    if (!isRunning) {
+        Send, !{Space}
+        Return
+    }
     if (!revolverlockarray[current_index]) {
         revolverarray[current_index] := ""
         clipboardallarray%current_index% := ""
@@ -229,6 +246,10 @@ Return
 Return
 
 ^!Space::
+    if (!isRunning) {
+        Send, ^!{Space}
+        Return
+    }
     Fish := max_index + 1
     Loop, %Fish% {
         curindex := A_Index -1
@@ -242,6 +263,10 @@ Return
 ;#ENDREGION CLEAR
 
 !l::
+    if (!isRunning) {
+        Send, !{l}
+        Return
+    }
     MouseGetPos, curmousex, curmousey, curmousewindow ;, OutputVarControl, 1|2|3]
 
     if (!revolverlockarray[current_index]) {
@@ -261,30 +286,36 @@ Return
 
 ; Hotkey for the mouse wheel down
 !WheelDown::
-    WheelCounter++
-    ; Reset the timer
-    SetTimer, ResetWheelCounter, Off
-    SetTimer, ResetWheelCounter, %ResetTime%
-    if (WheelCounter >= Threshold)
-    {
-        WheelCounter := 0
-        NextSlotLabel()
-
+    if (!isRunning) {
+        Send, !{WheelDown}
+        Return
     }
+    ; WheelCounter++
+    ; Reset the timer
+    ; SetTimer, ResetWheelCounter, Off
+    ; SetTimer, ResetWheelCounter, %ResetTime%
+    ; if (WheelCounter >= Threshold)
+    ; {
+    ;     WheelCounter := 0
+        NextSlotLabel()
+    ; }
 Return
 
 ; Hotkey for the mouse wheel up (if needed)
 !WheelUp::
-    WheelCounter++
-    ; Reset the timer
-    SetTimer, ResetWheelCounter, Off
-    SetTimer, ResetWheelCounter, %ResetTime%
-    if (WheelCounter >= Threshold)
-    {
-        WheelCounter := 0
-        PreviousSlotLabel()
-
+    if (!isRunning) {
+        Send, !{WheelUp}
+        Return
     }
+    ; WheelCounter++
+    ; ; Reset the timer
+    ; SetTimer, ResetWheelCounter, Off
+    ; SetTimer, ResetWheelCounter, %ResetTime%
+    ; if (WheelCounter >= Threshold)
+    ; {
+    ;     WheelCounter := 0
+        PreviousSlotLabel()
+    ; }
 Return
 
 ; Timer to reset the wheel counter
@@ -296,12 +327,35 @@ Return
 ;#region Moving Arrows
 
 !Right::
+    if (!isRunning) {
+        Send, !{Right}
+        Return
+    }
+    NextSlotLabel()
+
+Return
+
 !Down::
+    if (!isRunning) {
+        Send, !{Down}
+        Return
+    }
     NextSlotLabel()
 Return
 
 !Left::
+    if (!isRunning) {
+        Send, !{Left}
+        Return
+    }
+    PreviousSlotLabel()
+Return
+
 !Up::
+    if (!isRunning) {
+        Send, !{Up}
+        Return
+    }
     PreviousSlotLabel()
 Return
 
@@ -340,7 +394,11 @@ PreviousSlotLabel() {
 ; Return
 
 !v::
-    WaitForKeyRelease("Alt")
+    if (!isRunning) {
+        Send, !{v}
+        Return
+    }
+    KeyWait, Alt, U
     Gosub, UpdateChangeLabel
     Sleep, 300
     SetKeyDelay, 50
@@ -351,7 +409,11 @@ Return
 ; # Manual input
 
 !n::
-    WaitForKeyRelease("Alt")
+    if (!isRunning) {
+        Send, !{n}
+        Return
+    }
+    KeyWait, Alt, U
     ClearTooltips()
     CoordMode, Mouse, Screen
     MouseGetPos, curmousex, curmousey, curmousewindow ;, OutputVarControl, 1|2|3]
@@ -365,9 +427,6 @@ Return
 
     ; ControlFocus, Edit1, A
     ; WinSet, Transparent, 200
-
-    if ErrorLevel
-        Return
 
     Clipboard := NewClipboard
     revolverarray[current_index] := Clipboard

@@ -2,7 +2,7 @@
 SendMode Input
 SetWorkingDir, %A_ScriptDir%
 
-#Include ahkextrafunctions.ahk
+#Include LaserbeanAHK/KeyRelease.ahk
 
 ;#REGION VARIABLES
 
@@ -30,7 +30,7 @@ WheelTimer := 0
 ; Define the threshold for the number of wheel movements required
 Threshold := 3 ; Adjust this value as needed
 ; Define the time window in milliseconds to reset the counter
-ResetTime := 300 ; Adjust this value as needed (e.g., 300 ms) 
+ResetTime := 300 ; Adjust this value as needed (e.g., 300 ms)
 
 SoundPath := "C:\Users\Teaio\Documents\marcus\_ahk scripts\clipboard_quick_select\revolver click2.mp3"
 
@@ -39,6 +39,8 @@ UnlockChar := Chr(0x1F513)
 KeyChar := Chr(0x1F511) 
 SpaceChar := " "
 
+
+; OnClipboardChange(Callback , 1)
 
 ;#ENDREGION VARIABLES
 
@@ -108,9 +110,13 @@ MainLabel:
 
                     currentdisplayind := Mod((current_index + A_Index-offset)+max_index, max_index)
                     current_clipboard := revolverarray[currentdisplayind]
+
                     texttodisplay := current_clipboard
 
                     cur_display_tip_max_char := display_tip_max_char
+
+                    ; if (currentdisplayind == current_index) {    ;}
+                    ; if ((A_Index-offset) == min_index || (A_Index-offset) == max_index-1) {   ;}
 
                     if (A_Index == 1) {
                         cur_display_tip_max_char := cur_display_tip_max_char* 3
@@ -118,10 +124,15 @@ MainLabel:
                         cur_display_tip_max_char := 6
                     }
 
+                    ; if ((A_Index-offset) > max_index/2) {
+                    ;     cur_display_tip_max_char := 6
+                    ; }
+
                     if (StrLen(texttodisplay) > cur_display_tip_max_char) {
                         texttodisplay := SubStr(current_clipboard, 1, cur_display_tip_max_char) . "..."
                     }
 
+                    ; modifier := (1-Abs(0.1*(A_Index -4)))
                     modifier2 := cos((offset-A_Index)*3.141592654/6)
                     modifier3 := sin((A_Index-offset)*3.141592654/6)
                     modifier4 := 0.5*(A_Index -offset)
@@ -153,6 +164,7 @@ MainLabel:
                 ClearOtherTooltips()
 
                 Gosub, UpdateChangeLabel
+
             }
 
             ;else end====================
@@ -171,19 +183,23 @@ Return
 
 OnClipboardChange:
     ; MsgBox, , TEST, %ClipboardAll%
-    if (!isRunning || GetKeyState("Alt", "P") = 1){
+
+    if (!isRunning){
         return
     }
+
     if (revolverlockarray[current_index] || revolverarray[current_index] != "") {
         ; MsgBox, , test, test, 1
         changetriggered = True
         Gosub, UpdateChangeLabel
         return
     }
-    Sleep, 100
+
     ; current_clipboard := Clipboard
     revolverarray[current_index] := Clipboard
-    clipboardallarray%current_index% := ClipboardAll
+    try {
+        clipboardallarray%current_index% := ClipboardAll
+    }
 
     if (revolverarray[current_index] = "" && clipboardallarray%current_index% != "") {
         revolverarray[current_index] := " ... "
@@ -196,6 +212,10 @@ UpdateChangeLabel:
         ; Clipboard := revolverarray[current_index]
         Clipboard := clipboardallarray%current_index%
     }
+Return
+
+Testlabel:
+
 Return
 
 
@@ -241,28 +261,30 @@ Return
 
 ; Hotkey for the mouse wheel down
 !WheelDown::
-    ; WheelCounter++
+    WheelCounter++
     ; Reset the timer
-    ; SetTimer, ResetWheelCounter, Off
-    ; SetTimer, ResetWheelCounter, %ResetTime%
-    ; if (WheelCounter >= Threshold)
-    ; {
-    ;     WheelCounter := 0
+    SetTimer, ResetWheelCounter, Off
+    SetTimer, ResetWheelCounter, %ResetTime%
+    if (WheelCounter >= Threshold)
+    {
+        WheelCounter := 0
         NextSlotLabel()
-    ; }
+
+    }
 Return
 
 ; Hotkey for the mouse wheel up (if needed)
 !WheelUp::
-    ; WheelCounter++
-    ; ; Reset the timer
-    ; SetTimer, ResetWheelCounter, Off
-    ; SetTimer, ResetWheelCounter, %ResetTime%
-    ; if (WheelCounter >= Threshold)
-    ; {
-    ;     WheelCounter := 0
+    WheelCounter++
+    ; Reset the timer
+    SetTimer, ResetWheelCounter, Off
+    SetTimer, ResetWheelCounter, %ResetTime%
+    if (WheelCounter >= Threshold)
+    {
+        WheelCounter := 0
         PreviousSlotLabel()
-    ; }
+
+    }
 Return
 
 ; Timer to reset the wheel counter
@@ -343,6 +365,9 @@ Return
 
     ; ControlFocus, Edit1, A
     ; WinSet, Transparent, 200
+
+    if ErrorLevel
+        Return
 
     Clipboard := NewClipboard
     revolverarray[current_index] := Clipboard
