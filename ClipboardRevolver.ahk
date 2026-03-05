@@ -4,6 +4,7 @@
 SendMode Input
 SetWorkingDir, %A_ScriptDir%
 
+Menu, Tray, Icon, icon.ico
 
 ;#REGION VARIABLES
 
@@ -37,11 +38,10 @@ ResetTime := 300 ; Adjust this value as needed (e.g., 300 ms)
 
 SoundPath := "C:\Users\Teaio\Documents\marcus\_ahk scripts\clipboard_quick_select\revolver click2.mp3"
 
-LockChar := Chr(0x1F512) 
-UnlockChar := Chr(0x1F513) 
-KeyChar := Chr(0x1F511) 
+LockChar := Chr(0x1F512)
+UnlockChar := Chr(0x1F513)
+KeyChar := Chr(0x1F511)
 SpaceChar := " "
-
 
 ; OnClipboardChange(Callback , 1)
 
@@ -78,19 +78,17 @@ ClearTooltips() {
     Gosub, ToggleLabel
 Return
 
-+!MButton::
-    if (!isRunning) {
-        Send, +!{MButton}
-        Return
-    }
-    isWheeling := ! isWheeling
-    ToolTip, isWheeling %isWheeling%
-    Sleep, 300
+; +!MButton::
+;     if (!isRunning) {
+;         Send, +!{MButton}
+;         Return
+;     }
+;     isWheeling := ! isWheeling
+;     ToolTip, isWheeling %isWheeling%
+;     Sleep, 300
 
-    ToolTip
-Return
-
-
+;     ToolTip
+; Return
 
 #C::
     Gosub, ToggleLabel
@@ -117,7 +115,15 @@ MainLabel:
             ; ToolTip, %currentdisplayind%, curmousex - 100, curmousey-100, TOOLTIPNUMBER -1
             ; ToolTip, %clipboard%, curmousex, curmousey, TOOLTIPNUMBER
 
+            if (GetKeyState("LAlt", "P") and GetKeyState("Shift", "P")) {
+                isWheeling := ! isWheeling
+                ToolTip, isWheeling %isWheeling%, curmousex - 100, curmousey + 16
+                Sleep, 300
+                ToolTip
+            }
+
             if (GetKeyState("LAlt", "P") and isWheeling) {
+
                 if (!changetriggered) {
                     changetriggered := True
                 }
@@ -231,7 +237,6 @@ Testlabel:
 
 Return
 
-
 ;#REGION CLEAR
 !Space::
     if (!isRunning) {
@@ -297,8 +302,8 @@ Return
     ; if (WheelCounter >= Threshold)
     ; {
     ;     WheelCounter := 0
-        NextSlotLabel()
-    ; }
+    NextSlotLabel()
+; }
 Return
 
 ; Hotkey for the mouse wheel up (if needed)
@@ -314,8 +319,8 @@ Return
     ; if (WheelCounter >= Threshold)
     ; {
     ;     WheelCounter := 0
-        PreviousSlotLabel()
-    ; }
+    PreviousSlotLabel()
+; }
 Return
 
 ; Timer to reset the wheel counter
